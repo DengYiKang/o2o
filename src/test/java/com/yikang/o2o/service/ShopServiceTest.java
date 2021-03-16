@@ -39,15 +39,16 @@ public class ShopServiceTest extends BaseTest {
         shop.setOwner(owner);
         shop.setArea(area);
         shop.setShopCategory(shopCategory);
-        shop.setShopName("测试的店铺3");
-        shop.setShopDesc("test3");
-        shop.setShopAddr("test3");
-        shop.setPhone("test3");
+        shop.setShopName("测试的店铺1");
+        shop.setShopDesc("test1");
+        shop.setShopAddr("test1");
+        shop.setPhone("test1");
         shop.setCreateTime(new Date());
         shop.setEnableStatus(ShopStateEnum.CHECK.getState());
         shop.setAdvice("审核中");
         File shopImg = new File("/home/yikang/Picture/user_800_450.jpg");
-        ShopExecution se = shopService.addShop(shop, shopImg);
+        InputStream inputStream = new FileInputStream(shopImg);
+        ShopExecution se = shopService.addShop(shop, inputStream, shopImg.getName());
         assertEquals(ShopStateEnum.CHECK.getState(), se.getState());
     }
 }
