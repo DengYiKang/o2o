@@ -11,6 +11,7 @@ import com.yikang.o2o.enums.ShopStateEnum;
 import com.yikang.o2o.service.AreaService;
 import com.yikang.o2o.service.ShopCategoryService;
 import com.yikang.o2o.service.ShopService;
+import com.yikang.o2o.util.CodeUtil;
 import com.yikang.o2o.util.HttpServletRequestUtil;
 import com.yikang.o2o.util.ImageUtil;
 import com.yikang.o2o.util.PathUtil;
@@ -70,6 +71,13 @@ public class ShopManagementController {
     private Map<String, Object> registerShop(HttpServletRequest request) {
         //接受并转化相应的参数，包括店铺信息以及图片信息
         Map<String, Object> modelMap = new HashMap<>();
+        //检查验证码是否正确
+        if (!CodeUtil.checkVerifyCode(request)) {
+            modelMap.put("success", false);
+            modelMap.put("errMsg", "输入错误的验证码");
+            return modelMap;
+        }
+        //获取request中的Shop
         String shopStr = HttpServletRequestUtil.getString(request, "shopStr");
         ObjectMapper mapper = new ObjectMapper();
         Shop shop = null;
@@ -79,7 +87,7 @@ public class ShopManagementController {
             modelMap.put("success", false);
             modelMap.put("errMsg", e.getMessage());
         }
-        //文件流
+        //获取request中的名为shopImg的文件流
         CommonsMultipartFile shopImg = null;
         CommonsMultipartResolver commonsMultipartResolver =
                 new CommonsMultipartResolver(request.getSession().getServletContext());
@@ -93,6 +101,9 @@ public class ShopManagementController {
         //注册店铺
         if (shop != null && shopImg != null) {
             PersonInfo owner = new PersonInfo();
+            //owner应该是从session里取出的，但这里还没实现注册的接口
+            //因此先硬编码
+            //TODO get userId from session
             owner.setUserId(1L);
             shop.setOwner(owner);
             ShopExecution se = null;
