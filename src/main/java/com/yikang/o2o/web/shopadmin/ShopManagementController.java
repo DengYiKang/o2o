@@ -3,15 +3,20 @@ package com.yikang.o2o.web.shopadmin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yikang.o2o.dto.ShopExecution;
+import com.yikang.o2o.entity.Area;
 import com.yikang.o2o.entity.PersonInfo;
 import com.yikang.o2o.entity.Shop;
+import com.yikang.o2o.entity.ShopCategory;
 import com.yikang.o2o.enums.ShopStateEnum;
+import com.yikang.o2o.service.AreaService;
+import com.yikang.o2o.service.ShopCategoryService;
 import com.yikang.o2o.service.ShopService;
 import com.yikang.o2o.util.HttpServletRequestUtil;
 import com.yikang.o2o.util.ImageUtil;
 import com.yikang.o2o.util.PathUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,7 +26,9 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -30,6 +37,33 @@ public class ShopManagementController {
 
     @Autowired
     private ShopService shopService;
+
+    @Autowired
+    private ShopCategoryService shopCategoryService;
+
+    @Autowired
+    private AreaService areaService;
+
+
+    @RequestMapping(value = "/getshopinitinfo", method = RequestMethod.GET)
+    @ResponseBody
+    private Map<String, Object> getShopInitInfo() {
+        Map<String, Object> modelMap = new HashMap<>();
+        List<ShopCategory> shopCategoryList = null;
+        List<Area> areaList = null;
+        try {
+            //传入参数不为null，但是所有域为null，因此返回所有的二级shopCategory
+            shopCategoryList = shopCategoryService.getShopCategoryList(new ShopCategory());
+            areaList = areaService.getAreaList();
+            modelMap.put("success", true);
+            modelMap.put("shopCategoryList", shopCategoryList);
+            modelMap.put("areaList", areaList);
+        } catch (Exception e) {
+            modelMap.put("success", false);
+            modelMap.put("errMsg", e.getMessage());
+        }
+        return modelMap;
+    }
 
     @RequestMapping(value = "/registershop", method = RequestMethod.POST)
     @ResponseBody
@@ -81,29 +115,4 @@ public class ShopManagementController {
         //返回结果
         return modelMap;
     }
-
-//    private static void inputStreamToFile(InputStream inputStream, File file) {
-//        OutputStream os = null;
-//        try {
-//            os = new FileOutputStream(file);
-//            int bytesRead = 0;
-//            byte[] buffer = new byte[1024];
-//            while ((bytesRead = inputStream.read(buffer)) != -1) {
-//                os.write(buffer);
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException("调用inputStreamToFile产生异常：" + e.getMessage());
-//        } finally {
-//            try {
-//                if (os != null) {
-//                    os.close();
-//                }
-//                if (inputStream != null) {
-//                    inputStream.close();
-//                }
-//            } catch (IOException e) {
-//                throw new RuntimeException("inputStreamToFile关闭io异常：" + e.getMessage());
-//            }
-//        }
-//    }
 }
