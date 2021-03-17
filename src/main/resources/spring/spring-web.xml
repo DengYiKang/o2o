@@ -22,6 +22,7 @@
         <!--利用WEB-INF的安全性，在外界不能直接输入/WEB-INF/...url来访问文件的，
         而程序内部是可以通过WEB-INF去访问的，这时可以使用spring的dispatcher servlet来转向，
         我们先去请求一个controller，由controller分发到WEB-INF下面的页面就可以了-->
+        <!--比如访问index，那么会自动解析成/WEB-INF/html/index.html这个路径-->
         <property name="prefix" value="/WEB-INF/html/"></property>
         <property name="suffix" value=".html"></property>
     </bean>
