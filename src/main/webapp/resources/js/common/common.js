@@ -22,7 +22,8 @@ Date.prototype.Format = function(fmt) {
  * 
  */
 function changeVerifyCode(img) {
-	img.src = "../Kaptcha?" + Math.floor(Math.random() * 100);
+	/*定位到web.xml的名为Kaptcha的servlet*/
+	img.src = "../../Kaptcha?" + Math.floor(Math.random() * 100);
 }
 /**
  *	组织正则表达式，主要是定位name所在的位置，并截取name=value
