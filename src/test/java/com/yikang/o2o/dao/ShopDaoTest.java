@@ -1,14 +1,21 @@
 package com.yikang.o2o.dao;
 
 import com.yikang.o2o.BaseTest;
+import com.yikang.o2o.dto.ShopExecution;
 import com.yikang.o2o.entity.Area;
 import com.yikang.o2o.entity.PersonInfo;
 import com.yikang.o2o.entity.Shop;
 import com.yikang.o2o.entity.ShopCategory;
+import com.yikang.o2o.service.ShopService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -16,6 +23,32 @@ import static org.junit.Assert.assertEquals;
 public class ShopDaoTest extends BaseTest {
     @Autowired
     private ShopDao shopDao;
+
+    @Autowired
+    private ShopService shopService;
+
+
+    @Test
+    public void testModifyShop() {
+        Shop shop = shopDao.queryByShopId(1);
+        shop.setShopName("L的店铺");
+        try {
+            InputStream fis = new FileInputStream(new File("/home/yikang/publicPro/upload/images/item/shop/1/dante.jpg"));
+            ShopExecution shopExecution = shopService.modifyShop(shop, fis, "dante.jpg");
+            System.out.println(shopExecution.getShop().getShopImg());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    @Ignore
+    public void testQueryByShopId() {
+        long shopId = 1;
+        Shop shop = shopDao.queryByShopId(shopId);
+        System.out.println(shop.getArea().getAreaName());
+        System.out.println(shop.getShopCategory().getShopCategoryName());
+    }
 
     @Test
     @Ignore

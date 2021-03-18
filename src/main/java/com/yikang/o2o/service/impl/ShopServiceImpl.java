@@ -50,10 +50,10 @@ public class ShopServiceImpl implements ShopService {
                         throw new ShopOperationException("addShopImg error: " + e.getMessage());
                     }
                 }
-                //跟新店铺的图片地址
+                //更新店铺的图片地址
                 effectedNum = shopDao.updateShop(shop);
                 if (effectedNum <= 0) {
-                    throw new ShopOperationException("跟新图片地址失败");
+                    throw new ShopOperationException("更新图片地址失败");
                 }
             }
         } catch (Exception e) {
@@ -61,6 +61,40 @@ public class ShopServiceImpl implements ShopService {
             throw new ShopOperationException("addShop error: " + e.getMessage());
         }
         return new ShopExecution(ShopStateEnum.CHECK, shop);
+    }
+
+    @Override
+    public Shop getShopById(long shopId) {
+        return shopDao.queryByShopId(shopId);
+    }
+
+    @Override
+    @Transactional
+    public ShopExecution modifyShop(Shop shop, InputStream shopImgInputStream, String fileName) throws ShopOperationException {
+
+        if (shop == null || shop.getShopId() == null) {
+            return new ShopExecution(ShopStateEnum.NULL_SHOP);
+        }
+        //1、判断是否需要处理图片
+        try {
+            if (shopImgInputStream != null && fileName != null && !"".equals(fileName)) {
+                Shop tmpShop = shopDao.queryByShopId(shop.getShopId());
+                if (tmpShop.getShopImg() != null) {
+                    ImageUtil.deleteFileOrPath(tmpShop.getShopImg());
+                }
+                addShopImg(shop, shopImgInputStream, fileName);
+            }
+            //2、更新店铺信息
+            shop.setLastEditTime(new Date());
+            int effectedNum = shopDao.updateShop(shop);
+            if (effectedNum <= 0) return new ShopExecution(ShopStateEnum.INNER_ERROR);
+            else {
+                shop = shopDao.queryByShopId(shop.getShopId());
+                return new ShopExecution(ShopStateEnum.SUCCESS, shop);
+            }
+        } catch (Exception e) {
+            throw new ShopOperationException(e.getMessage());
+        }
     }
 
     private void addShopImg(Shop shop, InputStream shopImgInputStream, String fileName) {

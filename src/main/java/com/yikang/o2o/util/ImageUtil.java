@@ -161,7 +161,7 @@ public class ImageUtil {
         File fileOrPath = new File(PathUtil.getImgBasePath() + storePath);
         if (fileOrPath.exists()) {
             if (fileOrPath.isDirectory()) {
-                File files[] = fileOrPath.listFiles();
+                File[] files = fileOrPath.listFiles();
                 for (int i = 0; i < files.length; i++) {
                     files[i].delete();
                 }
