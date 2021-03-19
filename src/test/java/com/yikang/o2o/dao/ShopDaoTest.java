@@ -29,6 +29,7 @@ public class ShopDaoTest extends BaseTest {
 
 
     @Test
+    @Ignore
     public void testModifyShop() {
         Shop shop = shopDao.queryByShopId(1);
         shop.setShopName("L的店铺");
@@ -42,7 +43,6 @@ public class ShopDaoTest extends BaseTest {
     }
 
     @Test
-    @Ignore
     public void testQueryByShopId() {
         long shopId = 1;
         Shop shop = shopDao.queryByShopId(shopId);
@@ -51,7 +51,6 @@ public class ShopDaoTest extends BaseTest {
     }
 
     @Test
-    @Ignore
     public void testInsertShop() {
         Shop shop = new Shop();
         PersonInfo owner = new PersonInfo();
@@ -76,6 +75,7 @@ public class ShopDaoTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateShop() {
         Shop shop = new Shop();
         shop.setShopId(1L);
