@@ -66,6 +66,7 @@ public class ShopManagementController {
         } catch (Exception e) {
             modelMap.put("success", false);
             modelMap.put("errMsg", e.getMessage());
+            return modelMap;
         }
         //获取request中的名为shopImg的文件流
         CommonsMultipartFile shopImg = null;
@@ -86,10 +87,12 @@ public class ShopManagementController {
             } else {
                 modelMap.put("success", false);
                 modelMap.put("errMsg", se.getStateInfo());
+                return modelMap;
             }
         } catch (Exception e) {
             modelMap.put("success", false);
             modelMap.put("errMsg", e.getMessage());
+            return modelMap;
         }
         //返回结果
         return modelMap;
@@ -179,7 +182,7 @@ public class ShopManagementController {
             ShopExecution se = null;
             try {
                 se = shopService.addShop(shop, shopImg.getInputStream(), shopImg.getOriginalFilename());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 modelMap.put("success", false);
                 modelMap.put("errMsg", e.getMessage());
                 return modelMap;
