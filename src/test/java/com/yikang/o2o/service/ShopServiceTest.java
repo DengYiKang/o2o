@@ -8,6 +8,7 @@ import com.yikang.o2o.entity.Shop;
 import com.yikang.o2o.entity.ShopCategory;
 import com.yikang.o2o.enums.ShopStateEnum;
 import com.yikang.o2o.exception.ShopOperationException;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,6 +30,32 @@ public class ShopServiceTest extends BaseTest {
     private ShopService shopService;
 
     @Test
+    public void testQueryShopListAndCount() {
+        Shop shopCondition = new Shop();
+        PersonInfo owner = new PersonInfo();
+        owner.setUserId(1L);
+        shopCondition.setOwner(owner);
+        ShopCategory shopCategory = new ShopCategory();
+        shopCategory.setShopCategoryId(1L);
+        shopCondition.setShopCategory(shopCategory);
+        ShopExecution se = shopService.getShopList(shopCondition, 1, 5);
+        if (se.getState() == ShopStateEnum.SUCCESS.getState()) {
+            for (Shop shop : se.getShopList()) {
+                System.out.println(shop.getShopId());
+            }
+            System.out.println(se.getCount());
+        }
+        se = shopService.getShopList(shopCondition, 2, 5);
+        if (se.getState() == ShopStateEnum.SUCCESS.getState()) {
+            for (Shop shop : se.getShopList()) {
+                System.out.println(shop.getShopId());
+            }
+            System.out.println(se.getCount());
+        }
+    }
+
+    @Test
+    @Ignore
     public void testAddShop() throws ShopOperationException, FileNotFoundException {
         Shop shop = new Shop();
         PersonInfo owner = new PersonInfo();

@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,6 +28,23 @@ public class ShopDaoTest extends BaseTest {
     @Autowired
     private ShopService shopService;
 
+
+    @Test
+    public void testQueryShopList() {
+        Shop shopCondition = new Shop();
+        PersonInfo owner = new PersonInfo();
+        owner.setUserId(1L);
+        shopCondition.setOwner(owner);
+        List<Shop> shopList = shopDao.queryShopList(shopCondition, 0, 5);
+        ShopCategory shopCategory = new ShopCategory();
+        shopCategory.setShopCategoryId(1L);
+        shopCondition.setShopCategory(shopCategory);
+        int count = shopDao.queryShopCount(shopCondition);
+        for (Shop shop : shopList) {
+            System.out.println(shop.getShopName());
+        }
+        System.out.println(count);
+    }
 
     @Test
     @Ignore
@@ -43,6 +61,7 @@ public class ShopDaoTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void testQueryByShopId() {
         long shopId = 1;
         Shop shop = shopDao.queryByShopId(shopId);
@@ -51,6 +70,7 @@ public class ShopDaoTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void testInsertShop() {
         Shop shop = new Shop();
         PersonInfo owner = new PersonInfo();
