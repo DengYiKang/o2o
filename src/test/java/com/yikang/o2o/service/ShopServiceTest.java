@@ -1,6 +1,7 @@
 package com.yikang.o2o.service;
 
 import com.yikang.o2o.BaseTest;
+import com.yikang.o2o.dto.ImageHolder;
 import com.yikang.o2o.dto.ShopExecution;
 import com.yikang.o2o.entity.Area;
 import com.yikang.o2o.entity.PersonInfo;
@@ -76,7 +77,7 @@ public class ShopServiceTest extends BaseTest {
         shop.setAdvice("审核中");
         File shopImg = new File("/home/yikang/Picture/user_800_450.jpg");
         InputStream inputStream = new FileInputStream(shopImg);
-        ShopExecution se = shopService.addShop(shop, inputStream, shopImg.getName());
+        ShopExecution se = shopService.addShop(shop, new ImageHolder(shopImg.getName(), inputStream));
         assertEquals(ShopStateEnum.CHECK.getState(), se.getState());
     }
 }

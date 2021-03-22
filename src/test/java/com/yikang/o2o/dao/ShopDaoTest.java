@@ -1,6 +1,7 @@
 package com.yikang.o2o.dao;
 
 import com.yikang.o2o.BaseTest;
+import com.yikang.o2o.dto.ImageHolder;
 import com.yikang.o2o.dto.ShopExecution;
 import com.yikang.o2o.entity.Area;
 import com.yikang.o2o.entity.PersonInfo;
@@ -53,7 +54,7 @@ public class ShopDaoTest extends BaseTest {
         shop.setShopName("L的店铺");
         try {
             InputStream fis = new FileInputStream(new File("/home/yikang/publicPro/upload/images/item/shop/1/dante.jpg"));
-            ShopExecution shopExecution = shopService.modifyShop(shop, fis, "dante.jpg");
+            ShopExecution shopExecution = shopService.modifyShop(shop, new ImageHolder("dante.jpg", fis));
             System.out.println(shopExecution.getShop().getShopImg());
         } catch (FileNotFoundException e) {
             e.printStackTrace();

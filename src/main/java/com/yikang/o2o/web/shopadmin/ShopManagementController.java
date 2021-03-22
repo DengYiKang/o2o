@@ -2,6 +2,7 @@ package com.yikang.o2o.web.shopadmin;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yikang.o2o.dto.ImageHolder;
 import com.yikang.o2o.dto.ShopExecution;
 import com.yikang.o2o.entity.Area;
 import com.yikang.o2o.entity.PersonInfo;
@@ -128,9 +129,9 @@ public class ShopManagementController {
             if (commonsMultipartResolver.isMultipart(request)) {
                 MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
                 shopImg = (CommonsMultipartFile) multipartHttpServletRequest.getFile("shopImg");
-                se = shopService.modifyShop(shop, shopImg.getInputStream(), shopImg.getOriginalFilename());
+                se = shopService.modifyShop(shop, new ImageHolder(shopImg.getOriginalFilename(), shopImg.getInputStream()));
             } else {
-                se = shopService.modifyShop(shop, null, null);
+                se = shopService.modifyShop(shop, new ImageHolder(null, null));
             }
             if (se.getState() == ShopStateEnum.SUCCESS.getState()) {
                 modelMap.put("success", true);
@@ -155,7 +156,7 @@ public class ShopManagementController {
         Long shopId = HttpServletRequestUtil.getLong(request, "shopId");
         if (shopId > -1) {
             try {
-                Shop shop = shopService.getShopById(shopId);
+                Shop shop = shopService.getByShopId(shopId);
                 List<Area> areaList = areaService.getAreaList();
                 modelMap.put("shop", shop);
                 modelMap.put("areaList", areaList);
@@ -231,7 +232,7 @@ public class ShopManagementController {
             shop.setOwner(owner);
             ShopExecution se = null;
             try {
-                se = shopService.addShop(shop, shopImg.getInputStream(), shopImg.getOriginalFilename());
+                se = shopService.addShop(shop, new ImageHolder(shopImg.getOriginalFilename(), shopImg.getInputStream()));
             } catch (Exception e) {
                 modelMap.put("success", false);
                 modelMap.put("errMsg", e.getMessage());
