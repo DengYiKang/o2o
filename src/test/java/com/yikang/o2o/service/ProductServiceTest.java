@@ -28,18 +28,17 @@ public class ProductServiceTest extends BaseTest {
     private ProductService productService;
 
     @Test
-    @Ignore
     public void testAddProduct() throws ShopOperationException, FileNotFoundException {
         // 创建shopId为1且productCategoryId为1的商品实例并给其成员变量赋值
         Product product = new Product();
         Shop shop = new Shop();
-        shop.setShopId(11L);
+        shop.setShopId(22l);
         ProductCategory pc = new ProductCategory();
-        pc.setProductCategoryId(1L);
+        pc.setProductCategoryId(32L);
         product.setShop(shop);
         product.setProductCategory(pc);
-        product.setProductName("测试商品1");
-        product.setProductDesc("测试商品1");
+        product.setProductName("测试商品3");
+        product.setProductDesc("测试商品4");
         product.setPriority(20);
         product.setCreateTime(new Date());
         product.setEnableStatus(ProductStateEnum.SUCCESS.getState());
@@ -62,6 +61,7 @@ public class ProductServiceTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void testModifyProduct() throws ShopOperationException, FileNotFoundException {
         // 创建shopId为1且productCategoryId为1的商品实例并给其成员变量赋值
         Product product = new Product();

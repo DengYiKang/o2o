@@ -3,6 +3,7 @@ package com.yikang.o2o.service.impl;
 import java.util.Date;
 import java.util.List;
 
+import com.yikang.o2o.entity.PersonInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +86,12 @@ public class ShopServiceImpl implements ShopService {
             return new ShopExecution(ShopStateEnum.NULL_SHOP);
         }
         try {
+            //TODO:NEED TO BE REMOVED
+            PersonInfo personInfo=new PersonInfo();
+            personInfo.setUserId(1L);
+            if (shop.getOwner() == null){
+                shop.setOwner(personInfo);
+            }
             // 给店铺信息赋初始值
             shop.setEnableStatus(0);
             shop.setCreateTime(new Date());
