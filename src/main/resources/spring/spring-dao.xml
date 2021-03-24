@@ -8,7 +8,15 @@
     http://www.springframework.org/schema/context/spring-context.xsd">
     <!-- 配置整合mybatis过程 -->
     <!-- 1.配置数据库相关参数properties的属性：${url} -->
-    <context:property-placeholder location="classpath:jdbc.properties"/>
+    <!--EncryptPropertyPlaceholderConfigurer为自定义的具备解密的类，继承自PropertyPlaceholderConfigurer-->
+    <bean class="com.yikang.o2o.util.EncryptPropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+            </list>
+        </property>
+        <property name="fileEncoding" value="UTF-8"/>
+    </bean>
 
     <!-- 2.数据库连接池 -->
     <bean id="abstractDataSource" abstract="true" class="com.mchange.v2.c3p0.ComboPooledDataSource"
