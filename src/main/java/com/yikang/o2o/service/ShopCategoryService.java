@@ -7,7 +7,7 @@ import com.yikang.o2o.dto.ShopCategoryExecution;
 import com.yikang.o2o.entity.ShopCategory;
 
 public interface ShopCategoryService {
-	public static final String SCLISTKEY = "shopcategorylist";
+	public static final String SC_LIST_KEY = "shopcategorylist";
 
 	/**
 	 * 根据查询条件获取ShopCategory列表

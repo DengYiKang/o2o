@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yikang.o2o.cache.JedisUtil;
 import com.yikang.o2o.dao.ShopCategoryDao;
 import com.yikang.o2o.dto.ImageHolder;
 import com.yikang.o2o.dto.ShopCategoryExecution;
@@ -32,13 +33,17 @@ public class ShopCategoryServiceImpl implements ShopCategoryService {
 
     @Autowired
     private ShopCategoryDao shopCategoryDao;
+    @Autowired
+    private JedisUtil.Keys jedisKeys;
+    @Autowired
+    private JedisUtil.Strings jedisStrings;
 
     private static Logger logger = LoggerFactory.getLogger(ShopCategoryServiceImpl.class);
 
     @Override
     public List<ShopCategory> getShopCategoryList(ShopCategory shopCategoryCondition) {
         // 定义redis的key前缀
-        String key = SCLISTKEY;
+        String key = SC_LIST_KEY;
         // 定义接收对象
         List<ShopCategory> shopCategoryList = null;
         // 定义jackson数据转换操作类
@@ -56,17 +61,40 @@ public class ShopCategoryServiceImpl implements ShopCategoryService {
             key = key + "_allsecondlevel";
         }
         // 判断key是否存在
-
-        // 若不存在，则从数据库里面取出相应数据
-        shopCategoryList = shopCategoryDao.queryShopCategory(shopCategoryCondition);
-        // 将相关的实体类集合转换成string,存入redis里面对应的key中
-        String jsonString;
-        try {
-            jsonString = mapper.writeValueAsString(shopCategoryList);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-            throw new ShopCategoryOperationException(e.getMessage());
+        if (!jedisKeys.exists(key)) {
+            // 若不存在，则从数据库里面取出相应数据
+            shopCategoryList = shopCategoryDao.queryShopCategory(shopCategoryCondition);
+            // 将相关的实体类集合转换成string,存入redis里面对应的key中
+            String jsonString;
+            try {
+                jsonString = mapper.writeValueAsString(shopCategoryList);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new ShopCategoryOperationException(e.getMessage());
+            }
+            jedisStrings.set(key, jsonString);
+        } else {
+            // 若存在，则直接从redis里面取出相应数据
+            String jsonString = jedisStrings.get(key);
+            // 指定要将string转换成的集合类型
+            JavaType javaType = mapper.getTypeFactory().constructParametricType(ArrayList.class, ShopCategory.class);
+            try {
+                // 将相关key对应的value里的的string转换成对象的实体类集合
+                shopCategoryList = mapper.readValue(jsonString, javaType);
+            } catch (JsonParseException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new ShopCategoryOperationException(e.getMessage());
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new ShopCategoryOperationException(e.getMessage());
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new ShopCategoryOperationException(e.getMessage());
+            }
         }
         return shopCategoryDao.queryShopCategory(shopCategoryCondition);
     }
@@ -88,6 +116,7 @@ public class ShopCategoryServiceImpl implements ShopCategoryService {
                 int effectedNum = shopCategoryDao.insertShopCategory(shopCategory);
                 if (effectedNum > 0) {
                     // 删除店铺类别之前在redis里存储的一切key,for简单实现
+                    deleteRedis4ShopCategory();
                     return new ShopCategoryExecution(ShopCategoryStateEnum.SUCCESS, shopCategory);
                 } else {
                     return new ShopCategoryExecution(ShopCategoryStateEnum.INNER_ERROR);
@@ -122,6 +151,7 @@ public class ShopCategoryServiceImpl implements ShopCategoryService {
                 int effectedNum = shopCategoryDao.updateShopCategory(shopCategory);
                 if (effectedNum > 0) {
                     // 删除店铺类别之前在redis里存储的一切key,for简单实现
+                    deleteRedis4ShopCategory();
                     return new ShopCategoryExecution(ShopCategoryStateEnum.SUCCESS, shopCategory);
                 } else {
                     return new ShopCategoryExecution(ShopCategoryStateEnum.INNER_ERROR);
@@ -146,6 +176,18 @@ public class ShopCategoryServiceImpl implements ShopCategoryService {
         shopCategory.setShopCategoryImg(thumbnailAddr);
     }
 
+    /**
+     * 移除跟实体类相关的redis key-value
+     */
+    private void deleteRedis4ShopCategory() {
+        String prefix = SC_LIST_KEY;
+        // 获取跟店铺类别相关的redis key
+        Set<String> keySet = jedisKeys.keys(prefix + "*");
+        for (String key : keySet) {
+            // 逐条删除
+            jedisKeys.del(key);
+        }
+    }
 
     @Override
     public ShopCategory getShopCategoryById(Long shopCategoryId) {

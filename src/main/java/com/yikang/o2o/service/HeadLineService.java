@@ -8,7 +8,7 @@ import com.yikang.o2o.dto.ImageHolder;
 import com.yikang.o2o.entity.HeadLine;
 
 public interface HeadLineService {
-	public static final String HLLISTKEY = "headlinelist";
+	public static final String HL_LIST_KEY = "headlinelist";
 
 	/**
 	 * 根据传入的条件返回指定的头条列表

@@ -9,10 +9,12 @@
     <!-- 配置整合mybatis过程 -->
     <!-- 1.配置数据库相关参数properties的属性：${url} -->
     <!--EncryptPropertyPlaceholderConfigurer为自定义的具备解密的类，继承自PropertyPlaceholderConfigurer-->
+    <!--将jdbc与redis的properties配置引入-->
     <bean class="com.yikang.o2o.util.EncryptPropertyPlaceholderConfigurer">
         <property name="locations">
             <list>
                 <value>classpath:jdbc.properties</value>
+                <value>classpath:redis.properties</value>
             </list>
         </property>
         <property name="fileEncoding" value="UTF-8"/>

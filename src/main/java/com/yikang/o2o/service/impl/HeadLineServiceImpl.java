@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yikang.o2o.cache.JedisUtil;
 import com.yikang.o2o.dao.HeadLineDao;
 import com.yikang.o2o.dto.HeadLineExecution;
 import com.yikang.o2o.dto.ImageHolder;
@@ -31,6 +32,10 @@ import com.yikang.o2o.util.PathUtil;
 public class HeadLineServiceImpl implements HeadLineService {
     @Autowired
     private HeadLineDao headLineDao;
+    @Autowired
+    private JedisUtil.Keys jedisKeys;
+    @Autowired
+    private JedisUtil.Strings jedisStrings;
 
     private static Logger logger = LoggerFactory.getLogger(HeadLineServiceImpl.class);
 
@@ -38,7 +43,7 @@ public class HeadLineServiceImpl implements HeadLineService {
     @Transactional
     public List<HeadLine> getHeadLineList(HeadLine headLineCondition) {
         // 定义redis的key前缀
-        String key = HLLISTKEY;
+        String key = HL_LIST_KEY;
         // 定义接收对象
         List<HeadLine> headLineList = null;
         // 定义jackson数据转换操作类
@@ -47,15 +52,41 @@ public class HeadLineServiceImpl implements HeadLineService {
         if (headLineCondition != null && headLineCondition.getEnableStatus() != null) {
             key = key + "_" + headLineCondition.getEnableStatus();
         }
-        headLineList = headLineDao.queryHeadLine(headLineCondition);
-        // 将相关的实体类集合转换成string,存入redis里面对应的key中
-        String jsonString;
-        try {
-            jsonString = mapper.writeValueAsString(headLineList);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-            throw new HeadLineOperationException(e.getMessage());
+        // 判断key是否存在
+        if (!jedisKeys.exists(key)) {
+            // 若不存在，则从数据库里面取出相应数据
+            headLineList = headLineDao.queryHeadLine(headLineCondition);
+            // 将相关的实体类集合转换成string,存入redis里面对应的key中
+            String jsonString;
+            try {
+                jsonString = mapper.writeValueAsString(headLineList);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new HeadLineOperationException(e.getMessage());
+            }
+            jedisStrings.set(key, jsonString);
+        } else {
+            // 若存在，则直接从redis里面取出相应数据
+            String jsonString = jedisStrings.get(key);
+            // 指定要将string转换成的集合类型
+            JavaType javaType = mapper.getTypeFactory().constructParametricType(ArrayList.class, HeadLine.class);
+            try {
+                // 将相关key对应的value里的的string转换成对象的实体类集合
+                headLineList = mapper.readValue(jsonString, javaType);
+            } catch (JsonParseException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new HeadLineOperationException(e.getMessage());
+            } catch (JsonMappingException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new HeadLineOperationException(e.getMessage());
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.error(e.getMessage());
+                throw new HeadLineOperationException(e.getMessage());
+            }
         }
         return headLineList;
     }
@@ -76,6 +107,7 @@ public class HeadLineServiceImpl implements HeadLineService {
                 // 往数据库里插入头条信息
                 int effectedNum = headLineDao.insertHeadLine(headLine);
                 if (effectedNum > 0) {
+                    deleteRedis4HeadLine();
                     return new HeadLineExecution(HeadLineStateEnum.SUCCESS, headLine);
                 } else {
                     return new HeadLineExecution(HeadLineStateEnum.INNER_ERROR);
@@ -109,6 +141,7 @@ public class HeadLineServiceImpl implements HeadLineService {
                 // 更新头条信息
                 int effectedNum = headLineDao.updateHeadLine(headLine);
                 if (effectedNum > 0) {
+                    deleteRedis4HeadLine();
                     return new HeadLineExecution(HeadLineStateEnum.SUCCESS, headLine);
                 } else {
                     return new HeadLineExecution(HeadLineStateEnum.INNER_ERROR);
@@ -136,6 +169,7 @@ public class HeadLineServiceImpl implements HeadLineService {
                 // 删除数据库里对应的头条信息
                 int effectedNum = headLineDao.deleteHeadLine(headLineId);
                 if (effectedNum > 0) {
+                    deleteRedis4HeadLine();
                     return new HeadLineExecution(HeadLineStateEnum.SUCCESS);
                 } else {
                     return new HeadLineExecution(HeadLineStateEnum.INNER_ERROR);
@@ -165,6 +199,7 @@ public class HeadLineServiceImpl implements HeadLineService {
                 // 批量删除数据库中的头条信息
                 int effectedNum = headLineDao.batchDeleteHeadLine(headLineIdList);
                 if (effectedNum > 0) {
+                    deleteRedis4HeadLine();
                     return new HeadLineExecution(HeadLineStateEnum.SUCCESS);
                 } else {
                     return new HeadLineExecution(HeadLineStateEnum.INNER_ERROR);
@@ -189,4 +224,16 @@ public class HeadLineServiceImpl implements HeadLineService {
         headLine.setLineImg(thumbnailAddr);
     }
 
+    /**
+     * 移除跟实体类相关的redis key-value
+     */
+    private void deleteRedis4HeadLine() {
+        String prefix = HL_LIST_KEY;
+        // 获取跟头条相关的redis key
+        Set<String> keySet = jedisKeys.keys(prefix + "*");
+        for (String key : keySet) {
+            // 逐条删除
+            jedisKeys.del(key);
+        }
+    }
 }
